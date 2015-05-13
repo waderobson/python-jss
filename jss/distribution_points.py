@@ -171,6 +171,13 @@ class DistributionPoints(object):
 
                 elif repo.get('type') == 'JDS':
                     dp = JDS(jss=self.jss)
+                elif repo.get('type') == 'S3':
+                    access_key = repo['access_key']
+                    secret_key = repo['secret_key']
+                    URL = repo['URL']
+                    dp = S3(jss=self.jss, access_key=access_key,
+                            secret_key=secret_key,
+                            URL=URL)
                 else:
                     raise ValueError('Distribution Point Type not recognized.')
 
@@ -900,6 +907,41 @@ class HTTPRepository(Repository):
 
 class HTTPSRepository(Repository):
     pass
+
+class S3(Repository):
+    """Class for handling S3 uploads. Using s3cmd.
+    
+    """
+    required_attrs = {'URL', 'access_key', 'secret_key'}
+
+    def __init__(self, **connection_args):
+        
+        super(S3, self).__init__(**connection_args)
+        print self.connection['URL']
+    def _build_url(self):
+        pass
+    def copy_pkg(self, filename, id_=-1):
+        """Copy a package to the repo's subdirectory.
+
+        filename:           Path for file to copy.
+        id_:                Ignored. Used for compatibility with JDS
+                            repos.
+
+        """
+        self._copy(filename)
+        
+    def _copy(self, filename):
+        """Copy a file to the s3 bucket. Since we're 
+        setting the bucket with the URL preference. Don't see
+        the need for destination
+
+        """
+        cmd = ['/usr/local/bin/s3cmd',
+               '--access_key=' + self.connection['access_key'],
+               '--secret_key=' + self.connection['secret_key'],
+               'put', filename, self.connection['URL']]
+        subprocess.check_call(cmd)        
+    
 
 
 def is_package(filename):
