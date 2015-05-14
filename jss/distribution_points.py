@@ -914,10 +914,10 @@ class S3(Repository):
     In order for this to work you need s3cmd installed.
     Easiest way is home brew. You also need a S3 type repo in
     your config.
-    • type = 'S3'
-    • access_key = <your s3 access key>
-    • secret_key = <your s3 secret key>
-    • URL = <s3 bucket url> // ie: s3://jamf34523452jhkfqjerf
+    - type = 'S3'
+    - access_key = <your s3 access key>
+    - secret_key = <your s3 secret key>
+    - URL = <s3 bucket url> // ie: s3://jamf34523452jhkfqjerf
     
     Your JSS will only show you the cloudfront URL. 
     You need the bucket linked to that URL
