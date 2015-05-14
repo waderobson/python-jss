@@ -911,15 +911,30 @@ class HTTPSRepository(Repository):
 class S3(Repository):
     """Class for handling S3 uploads. Using s3cmd.
     
+    In order for this to work you need s3cmd installed.
+    Easiest way is home brew. You also need a S3 type repo in
+    your config.
+    • type = 'S3'
+    • access_key = <your s3 access key>
+    • secret_key = <your s3 secret key>
+    • URL = <s3 bucket url> // ie: s3://jamf34523452jhkfqjerf
+    
+    Your JSS will only show you the cloudfront URL. 
+    You need the bucket linked to that URL
+      
     """
     required_attrs = {'URL', 'access_key', 'secret_key'}
 
     def __init__(self, **connection_args):
         
+        if not os.path.isfile('/usr/local/bin/s3cmd'):
+            raise IOError('s3cmd not found')
+        
         super(S3, self).__init__(**connection_args)
-        print self.connection['URL']
+
     def _build_url(self):
         pass
+
     def copy_pkg(self, filename, id_=-1):
         """Copy a package to the repo's subdirectory.
 
@@ -929,11 +944,27 @@ class S3(Repository):
 
         """
         self._copy(filename)
+
+    def exists(self, filename):
+        """Looks for filename in output from s3cmd ls command
+        may become a problem if the filename has a space.
+
+        """
+        cmd = ['/usr/local/bin/s3cmd',
+               '--access_key=' + self.connection['access_key'],
+               '--secret_key=' + self.connection['secret_key'],
+               'ls', self.connection['URL']]
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr= subprocess.PIPE)
+        output, err = p.communicate()
+        if filename in output:
+            return True
+        else:
+            return False
         
     def _copy(self, filename):
         """Copy a file to the s3 bucket. Since we're 
-        setting the bucket with the URL preference. Don't see
-        the need for destination
+        setting the bucket with the URL preference.
+        No need for destination.
 
         """
         cmd = ['/usr/local/bin/s3cmd',
